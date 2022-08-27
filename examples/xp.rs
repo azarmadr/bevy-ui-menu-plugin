@@ -62,5 +62,5 @@ fn main() {
     app.run();
 }
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(Camera3dBundle::default());
+    commands.spawn_bundle(Camera2dBundle::default());
 }

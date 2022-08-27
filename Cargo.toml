@@ -26,6 +26,7 @@ features = [
   #"render",
   ## "render" actually just includes:
   ## (feel free to use just a subset of these, instead of "render")
+  "bevy_asset",
   "bevy_render",        # Rendering framework core
   "bevy_sprite",        # 2D (sprites) rendering
   "bevy_core_pipeline", # Higher-level rendering abstractions
