@@ -51,7 +51,7 @@ fn main() {
     .insert_resource(A(8u8, 1))
     .add_plugins(DefaultPlugins)
     .init_resource::<MenuMaterials>()
-    .add_plugin(MenuPlugin::<A>(std::marker::PhantomData))
+    .add_plugin(MenuPlugin::<A>::default())
     .add_startup_system(startup);
     // Debug hierarchy inspector
     #[cfg(feature = "debug")]

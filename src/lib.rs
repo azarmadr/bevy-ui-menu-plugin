@@ -113,8 +113,15 @@ pub enum MenuState {
     Menu,
     Disabled,
 }
+use std::marker::PhantomData;
+
 use MenuState::*;
 pub struct MenuPlugin<T: MenuItem>(pub std::marker::PhantomData<T>);
+impl<T: MenuItem> Default for MenuPlugin<T> {
+    fn default() -> Self{
+        Self(PhantomData)
+    }
+}
 impl<T: MenuItem + Sync + Send + 'static> Plugin for MenuPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_state(Menu)
