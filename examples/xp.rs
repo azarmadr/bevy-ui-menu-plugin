@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-#[cfg(feature = "debug")]
+#[cfg(feature = "dev")]
 use bevy_inspector_egui::{InspectorPlugin, WorldInspectorPlugin};
 use menu_plugin::*;
 
-#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
+#[cfg_attr(feature = "dev", derive(bevy_inspector_egui::Inspectable))]
+#[derive(Resource)]
 struct A(u8, u8);
 impl MenuItem for A {
     type Attributes = ();
@@ -28,9 +29,7 @@ impl MenuItem for A {
                 ..default()
             },
         );
-        cmd.spawn_bundle(m.button_border())
-            .push_children(&[e0, e1])
-            .id()
+        cmd.spawn(m.button_border()).push_children(&[e0, e1]).id()
     }
     fn system(&mut self, e: Entity, m: &MenuMaterials, world: &mut World) {
         let mut ch = world.query::<&mut Children>();
@@ -42,25 +41,30 @@ impl MenuItem for A {
 
 fn main() {
     let mut app = App::new();
-    app.insert_resource(WindowDescriptor {
-        title: "Menu Plugin Example - Bevy".to_string(),
-        width: 1080.,
-        height: 720.,
-        ..Default::default()
-    })
-    .insert_resource(A(8u8, 1))
-    .add_plugins(DefaultPlugins)
-    .init_resource::<MenuMaterials>()
-    .add_plugin(MenuPlugin::<A>::default())
-    .add_startup_system(startup);
-    // Debug hierarchy inspector
-    #[cfg(feature = "debug")]
+    app.insert_resource(Msaa { samples: 1 })
+        .insert_resource(ClearColor(Color::rgb(0.4, 0.4, 0.4)))
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Menu Plugin Example - Bevy".to_string(),
+                width: 1080.,
+                height: 720.,
+                ..Default::default()
+            },
+            ..default()
+        }))
+        .insert_resource(A(8u8, 1))
+        .init_resource::<MenuMaterials>()
+        .add_plugin(MenuPlugin::<A>::default())
+        .add_startup_system(startup);
+    // dev hierarchy inspector
+
+    #[cfg(feature = "dev")]
     app.add_plugin(WorldInspectorPlugin::new())
-        .add_plugin(InspectorPlugin::<u8>::new())
         .add_plugin(InspectorPlugin::<A>::new_insert_manually())
         .add_plugin(InspectorPlugin::<MenuMaterials>::new());
+
     app.run();
 }
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 }

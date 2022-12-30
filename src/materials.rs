@@ -6,7 +6,8 @@ pub struct NamedBundle<T: Bundle> {
     pub node: T,
     name: Name,
 }
-#[cfg_attr(feature = "debug", derive(bevy_inspector_egui::Inspectable))]
+#[cfg_attr(feature = "dev", derive(bevy_inspector_egui::Inspectable))]
+#[derive(Resource)]
 pub struct MenuMaterials {
     pub none: Color,
     pub root: Color,
@@ -35,7 +36,7 @@ impl FromWorld for MenuMaterials {
             pressed: Color::rgb(0.35, 0.75, 0.35),
             font: asset_server.load("fonts/FiraMono-Medium.ttf"),
             button_text: Color::rgb(0.9, 0.9, 0.9),
-            size: 720.
+            size: 720.,
         }
     }
 }
@@ -50,7 +51,7 @@ impl MenuMaterials {
                     align_items: AlignItems::Center,
                     ..default()
                 },
-                color: self.root.into(),
+                background_color: self.root.into(),
                 transform: Transform::from_xyz(0., 0., 1.),
                 ..default()
             },
@@ -61,11 +62,11 @@ impl MenuMaterials {
         NamedBundle {
             node: NodeBundle {
                 style: Style {
-                    border: UiRect::all(Val::Px(self.size*0.003)),
+                    border: UiRect::all(Val::Px(self.size * 0.003)),
                     flex_basis: Val::Px(0.),
                     ..default()
                 },
-                color: self.button_border.into(),
+                background_color: self.button_border.into(),
                 ..default()
             },
             name: Name::new("Button Border"),
@@ -75,11 +76,11 @@ impl MenuMaterials {
         NamedBundle {
             node: NodeBundle {
                 style: Style {
-                    border: UiRect::all(Val::Px(self.size*0.003)),
+                    border: UiRect::all(Val::Px(self.size * 0.003)),
                     flex_basis: Val::Px(0.),
                     ..default()
                 },
-                color: self.border.into(),
+                background_color: self.border.into(),
                 ..default()
             },
             name: Name::new("Border"),
@@ -92,11 +93,11 @@ impl MenuMaterials {
                     size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
-                    border: UiRect::all(Val::Px(self.size*0.003)),
+                    border: UiRect::all(Val::Px(self.size * 0.003)),
                     flex_basis: Val::Px(0.),
                     ..default()
                 },
-                color: self.button.into(),
+                background_color: self.button.into(),
                 ..default()
             },
             name: Name::new("Button"),
@@ -114,7 +115,7 @@ impl MenuMaterials {
                     flex_basis: Val::Px(0.),
                     ..default()
                 },
-                color: self.menu.into(),
+                background_color: self.menu.into(),
                 ..default()
             },
             name: Name::new("Menu Background"),
@@ -132,7 +133,7 @@ impl MenuMaterials {
             ..self.menu_background(FlexDirection::ColumnReverse)
         }
     }
-    #[autodefault(except(NamedBundle,TextStyle,TextAlignment))]
+    #[autodefault(except(NamedBundle, TextStyle, TextAlignment))]
     pub fn button_text<S: Into<String>>(&self, label: S) -> NamedBundle<TextBundle> {
         NamedBundle {
             node: TextBundle {
@@ -147,12 +148,14 @@ impl MenuMaterials {
                     label.into(),
                     TextStyle {
                         font: self.font.clone(),
-                        font_size: self.size/27.,
+                        font_size: self.size / 27.,
                         color: self.button_text,
-                    }).with_alignment( TextAlignment {
-                        vertical: VerticalAlign::Center,
-                        horizontal: HorizontalAlign::Center,
-                    }),
+                    },
+                )
+                .with_alignment(TextAlignment {
+                    vertical: VerticalAlign::Center,
+                    horizontal: HorizontalAlign::Center,
+                }),
             },
             name: Name::new("Button Text"),
         }
@@ -167,7 +170,7 @@ impl MenuMaterials {
             value: format!("{}\n", text.into()),
             style: TextStyle {
                 font: self.font.clone(),
-                font_size: self.size/27.*font_size,
+                font_size: self.size / 27. * font_size,
                 color,
             },
         }

@@ -75,11 +75,11 @@ impl<T: Resource> ActionSpawner for Vol<T> {
         let m = f.clone();
         let t = f.clone();
         parent
-            .spawn_bundle(materials.menu_td())
+            .spawn(materials.menu_td())
             .with_children(|p| {
                 Action::new("+".to_string(), move |o: &mut T| (f.action)(o, true))
                     .spawn(p, materials);
-                p.spawn_bundle(materials.button_text("".to_string()))
+                p.spawn(materials.button_text("".to_string()))
                     .insert(LabelText::new(move |o: &T| (t.label)(o)));
                 Action::new("-".to_string(), move |o: &mut T| (m.action)(o, false))
                     .spawn(p, materials);
@@ -91,30 +91,30 @@ impl<T: Resource> ActionSpawner for Action<T> {
     fn spawn(self, parent: &mut ChildBuilder, materials: &Res<MenuMaterials>) {
         let name = &self.name.clone();
         parent
-            .spawn_bundle(materials.button_border())
+            .spawn(materials.button_border())
             .insert(Name::new("Action"))
             .with_children(|p| {
-                p.spawn_bundle(materials.button())
+                p.spawn(materials.button())
                     .insert(self)
                     .insert(Name::new(format!("Button({:?})", name)))
                     .with_children(|p| {
-                        p.spawn_bundle(materials.button_text(name));
+                        p.spawn(materials.button_text(name));
                     });
             });
     }
 }
 impl ActionSpawner for String {
     fn spawn(self, parent: &mut ChildBuilder, materials: &Res<MenuMaterials>) {
-        parent.spawn_bundle(materials.button_text(self));
+        parent.spawn(materials.button_text(self));
     }
 }
 impl<T: Resource> ActionSpawner for CheckBox<T> {
     fn spawn(self, parent: &mut ChildBuilder, materials: &Res<MenuMaterials>) {
         let Self { name, lens, lens_m } = self;
         parent
-            .spawn_bundle(materials.menu_lr())
+            .spawn(materials.menu_lr())
             .with_children(|p| {
-                p.spawn_bundle(materials.button_text("".to_string()))
+                p.spawn(materials.button_text("".to_string()))
                     .insert(LabelText::new(move |o: &T| {
                         char::from_u32(if (lens)(o) { 0x25a3 } else { 0x25a1 })
                             .unwrap()
@@ -133,7 +133,10 @@ impl<T: Resource> ActionSpawner for CheckBox<T> {
 pub fn asset_button_server<T: Resource>(
     button_colors: Res<MenuMaterials>,
     mut asset: ResMut<T>,
-    mut interaction_query: Query<(&Interaction, &Action<T>, &mut UiColor), Changed<Interaction>>,
+    mut interaction_query: Query<
+        (&Interaction, &Action<T>, &mut BackgroundColor),
+        Changed<Interaction>,
+    >,
     mut labels: Query<(&LabelText<T>, &mut Text)>,
 ) {
     for (interaction, action, mut color) in interaction_query.iter_mut() {

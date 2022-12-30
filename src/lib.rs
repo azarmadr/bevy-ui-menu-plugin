@@ -45,21 +45,21 @@ impl<T> Default for Volume<T> {
 impl MenuItem for num_t {
     type Attributes = Volume<num_t>;
     fn ui(&self, cmd: &mut Commands, m: &Res<MenuMaterials>, opts: Volume<num_t>) -> Entity {
-        cmd.spawn_bundle(if opts.vertical {
+        cmd.spawn(if opts.vertical {
             m.menu_td()
         } else {
             m.menu_lr()
         })
         .with_children(|p| {
-            p.spawn_bundle(m.button_border()).with_children(|p| {
-                p.spawn_bundle(m.button()).with_children(|p| {
-                    p.spawn_bundle(m.button_text("+"));
+            p.spawn(m.button_border()).with_children(|p| {
+                p.spawn(m.button()).with_children(|p| {
+                    p.spawn(m.button_text("+"));
                 });
             });
-            p.spawn_bundle(m.button_text(format!("{}", self)));
-            p.spawn_bundle(m.button_border()).with_children(|p| {
-                p.spawn_bundle(m.button()).with_children(|p| {
-                    p.spawn_bundle(m.button_text("-"));
+            p.spawn(m.button_text(format!("{}", self)));
+            p.spawn(m.button_border()).with_children(|p| {
+                p.spawn(m.button()).with_children(|p| {
+                    p.spawn(m.button_text("-"));
                 });
             });
         })
@@ -72,7 +72,11 @@ impl MenuItem for num_t {
         let min_v = o.min.unwrap_or(num_t::MIN);
 
         let mut ch = world.query::<&mut Children>();
-        let mut query = world.query::<(&Interaction, ChangeTrackers<Interaction>, &mut UiColor)>();
+        let mut query = world.query::<(
+            &Interaction,
+            ChangeTrackers<Interaction>,
+            &mut BackgroundColor,
+        )>();
         let mut chv: Vec<Entity> = ch.get(world, e).unwrap()[..].to_vec();
         let text = chv.remove(1);
         chv[0] = ch.get(world, chv[0]).unwrap()[0];
@@ -118,11 +122,11 @@ use std::marker::PhantomData;
 use MenuState::*;
 pub struct MenuPlugin<T: MenuItem>(pub std::marker::PhantomData<T>);
 impl<T: MenuItem> Default for MenuPlugin<T> {
-    fn default() -> Self{
+    fn default() -> Self {
         Self(PhantomData)
     }
 }
-impl<T: MenuItem + Sync + Send + 'static> Plugin for MenuPlugin<T> {
+impl<T: MenuItem + Resource> Plugin for MenuPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_state(Menu)
             .add_system_set(SystemSet::on_enter(InGame).with_system(setup_ui))
@@ -133,9 +137,7 @@ impl<T: MenuItem + Sync + Send + 'static> Plugin for MenuPlugin<T> {
                     .with_system(setup_menu::<T>)
                     .with_system(despawn::<UI>),
             )
-            .add_system_set(
-                SystemSet::on_update(Menu).with_system(menu_system::<T>.exclusive_system()),
-            )
+            .add_system_set(SystemSet::on_update(Menu).with_system(menu_system::<T>))
             .add_system_set(SystemSet::on_exit(Menu).with_system(despawn::<MenuUI>));
     }
 }
@@ -148,16 +150,14 @@ fn setup_ui() {}
 #[autodefault]
 fn setup_menu<T>(mut cmd: Commands, materials: Res<MenuMaterials>, res: Res<T>)
 where
-    T: MenuItem + Sync + Send + 'static,
+    T: MenuItem + Sync + Send + 'static + Resource,
 {
-    let menu = cmd.spawn_bundle(materials.menu_td()).id();
-    cmd.spawn_bundle(materials.root())
+    let menu = cmd.spawn(materials.menu_td()).id();
+    cmd.spawn(materials.root())
         .insert(MenuUI)
         .insert(Name::new("MenuUI"))
         .with_children(|parent| {
-            parent
-                .spawn_bundle(materials.border())
-                .push_children(&[menu]);
+            parent.spawn(materials.border()).push_children(&[menu]);
         });
     let e = res.as_ref().ui(&mut cmd, &materials, default());
     cmd.entity(menu).push_children(&[e]);
